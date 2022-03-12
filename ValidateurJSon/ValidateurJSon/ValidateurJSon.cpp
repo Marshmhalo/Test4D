@@ -1,6 +1,30 @@
 // ValidateurJSon.cpp : Ce fichier contient la fonction 'main'. L'exécution du programme commence et se termine à cet endroit.
 //
 
+#define TEST "{ \
+\"glossary\": { \
+    \"title\": \"example glossary\", \
+        \"GlossDiv\" : { \
+        \"title\": \"S\", \
+            \"GlossList\" : { \
+            \"GlossEntry\": { \
+                \"ID\": \"SGML\", \
+                    \"SortAs\" : \"SGML\", \
+                    \"GlossTerm\" : \"Standard Generalized Markup Language\", \
+                    \"Acronym\" : \"SGML\", \
+                    \"Abbrev\" : \"ISO 8879:1986\", \
+                    \"GlossDef\" : { \
+                    \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\", \
+                        \"GlossSeeAlso\" : [\"GML\", \"XML\"] \
+                }, \
+                    \"GlossSee\" : \"markup\" \
+            } \
+        } \
+    } \
+} \
+}"
+
+
 #include <stdio.h>
 
 #include "ProjectDefines.h"
@@ -13,7 +37,7 @@ int main()
     vect.push_back(std::string("test1"));
     vect.push_back(std::string("test2"));
 
-    CParserJSON* pParser = new CParserJSON();
+    CParserJSON* pParser = new CParserJSON(std::string(TEST));
     delete pParser;
 
 
