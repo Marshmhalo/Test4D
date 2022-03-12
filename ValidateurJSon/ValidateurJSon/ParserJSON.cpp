@@ -97,7 +97,12 @@ bool CParserJSON::parse(std::string stringToParse)
         printf("values : $%s$\n", values.c_str());
         bufferValues = const_cast<char*>(values.c_str());
 
-        if (NULL != (debArray = findChar(bufferValues, '[')))
+        debArray = findChar(bufferValues, '[');
+        debObjValeur = findChar(bufferValues, '{');
+        debValeur = findChar(bufferValues, '"');
+
+
+        if (NULL != debArray && (NULL == debObjValeur || debArray < debObjValeur) && (NULL == debValeur || debArray < debValeur))
         { // Cas d'un tableau
             ++debArray;
 
@@ -122,11 +127,11 @@ bool CParserJSON::parse(std::string stringToParse)
         }
         else
         {
-            if (NULL != (debObjValeur = findChar(debValeurs, '{')) &&
-               (NULL == (debValeur = findChar(debValeurs, '"')) || debObjValeur < debValeur))
+            if (NULL != (debObjValeur = findChar(bufferValues, '{')) &&
+               (NULL == (debValeur = findChar(bufferValues, '"')) || debObjValeur < debValeur))
             {   // Cas de la valeur objet
 
-                if (NULL == (debValeur = findChar(debValeurs, '{')) || NULL == (finValeur = findChar(debValeur + 1, '}')) || finValeur <= debValeur + 1)
+                if (NULL == (debValeur = findChar(bufferValues, '{')) || NULL == (finValeur = findChar(debValeur + 1, '}')) || finValeur <= debValeur + 1)
                 {
                     printf("Parse impossible : Objet valeur vide ou incomplete\n");
                     return false;
@@ -195,16 +200,38 @@ char* CParserJSON::findChar(char* buffer, char value, unsigned int size/*=0*/)
 {
     unsigned int idx = 0;
     bool inString = false;
+    int level = 0;
 
     if (0 == size)
         size = strlen(buffer);
 
     while (NULL != buffer[idx] && idx < size)
     {
-        if (!inString && buffer[idx] == value)
+        if (!inString && level==0 && buffer[idx] == value)
             return &buffer[idx];
         if (buffer[idx] == '\"')
             inString = !inString;
+        if (value == '{')
+        {
+            if (buffer[idx] == '}')  --level;
+            if (buffer[idx] == '{')  ++level;
+        }
+        if (value == '}')
+        {
+            if (buffer[idx] == '{')  ++level;
+            if (buffer[idx] == '}')  --level;
+        }
+        if (value == '[')
+        {
+            if (buffer[idx] == ']')  --level;
+            if (buffer[idx] == '[')  ++level;
+        }
+        if (value == ']')
+        {
+            if (buffer[idx] == '[')  ++level;
+            if (buffer[idx] == ']')  --level;
+        }
+
         ++idx;
     }
 
