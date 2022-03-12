@@ -67,8 +67,7 @@ bool CParserJSON::parse(std::string stringToParse)
             printf("Parse impossible : Elément vide ou incomplet\n");
             return false;
         }
-        buffer = finElement;
-        --finElement;
+        buffer = finElement+1;
         ///////////////////////////////////////////////////////////////////////
 
         do
@@ -100,7 +99,6 @@ bool CParserJSON::parse(std::string stringToParse)
                 return false;
             }
             std::string values(debValeurs, finValeurs - debValeurs);
-            //printf("values : $%s$\n", values.c_str());
             bufferValues = const_cast<char*>(values.c_str());
 
             debArray = findChar(bufferValues, '[');
@@ -133,6 +131,7 @@ bool CParserJSON::parse(std::string stringToParse)
                     if (NULL != debObjValeur &&
                         (NULL == debValeur || debObjValeur < debValeur))
                     {   // Cas de la valeur objet
+                        hasNextArray = false; // Déjà géré dabns la fonction de base
                         if (false == parse(arrayJSON))
                             return false;
                     }

@@ -17,7 +17,8 @@
                     \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\", \
                         \"GlossSeeAlso\" : [\"GML\", \"XML\"] \
                 }, \
-                    \"GlossSee\" : \"markup\" \
+                    \"GlossSee\" : \"markup\", \
+                    \"testGpi\" : [{\"test1\" : \"5\"},{\"test2\" : \"3\"}] \
             } \
         } \
     } \
@@ -26,14 +27,22 @@
 
 
 #include <stdio.h>
+#include <iostream>
 
 #include "ProjectDefines.h"
 #include "ParserJSON.h"
 
 int main()
 {
-    CParserJSON* pParser = new CParserJSON(std::string(TEST));
-    pParser->parse();
+    std::string test;
+    std::cout << "Entrer la chaine a parser :" << std::endl;
+    std::cin >> test;
+
+    CParserJSON* pParser = new CParserJSON(test);
+    if (pParser->parse())
+        std::cout << std::endl << "parsing OK" << std::endl;
+    else
+        std::cout << std::endl << "parsing KO" << std::endl;
     delete pParser;
 }
 
