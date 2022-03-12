@@ -28,36 +28,13 @@
 #include <stdio.h>
 
 #include "ProjectDefines.h"
-#include "ObjectJSON.h"
 #include "ParserJSON.h"
 
 int main()
 {
-    std::vector <std::string> vect;
-    vect.push_back(std::string("test1"));
-    vect.push_back(std::string("test2"));
-
     CParserJSON* pParser = new CParserJSON(std::string(TEST));
+    pParser->parse();
     delete pParser;
-
-
-    CObjectJSON* pObjectNull    = new CObjectJSON(E_TOJ_null,       std::string("GpiNull"), std::string("0")    );
-    CObjectJSON* pObjectStr     = new CObjectJSON(E_TOJ_string,     std::string("GpiStr"),  vect                );
-    CObjectJSON* pObjectNb      = new CObjectJSON(E_TOJ_number,     std::string("GpiNb"),   std::string("7")    );
-    CObjectJSON* pObjectObj     = new CObjectJSON(E_TOJ_object,     std::string("GpiObj"),  std::string("obj")  );
-    CObjectJSON* pObjectBool    = new CObjectJSON(E_TOJ_boolean,    std::string("GpiBool"), std::string("true") );
-
-    pObjectNull->printObject();
-    pObjectStr->printObject();
-    pObjectNb->printObject();
-    pObjectObj->printObject();
-    pObjectBool->printObject();
-
-    delete pObjectNull;
-    delete pObjectStr;
-    delete pObjectNb;
-    delete pObjectObj;
-    delete pObjectBool;
 }
 
 // Exécuter le programme : Ctrl+F5 ou menu Déboguer > Exécuter sans débogage

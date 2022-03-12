@@ -1,4 +1,5 @@
 #include "ParserJSON.h"
+#include "ObjectJSON.h"
 
 
 /**********************************************************************************************************************
@@ -48,6 +49,7 @@ bool CParserJSON::parse(std::string stringToParse)
     char* debValeurs = NULL, * finValeurs = NULL;
     char* debArray = NULL, * finArray = NULL;
     char* debValeur = NULL, * finValeur = NULL;
+    char* debObjValeur = NULL, * finObjValeur = NULL;
     char* bufferValues = NULL;
     char* bufferValue = NULL;
     bool isObjectArray = false;
@@ -118,9 +120,30 @@ bool CParserJSON::parse(std::string stringToParse)
         }
         else
         {
-            if (NULL == (debValeur = findChar(debValeurs, '"')) || NULL == (finValeur = findChar(debValeur + 1, '"')))
-            {
+            if (NULL != (debObjValeur = findChar(debValeurs, '{')) &&
+               (NULL == (debValeur = findChar(debValeurs, '"')) || debObjValeur < debValeur))
+            {   // Cas de la valeur objet
 
+                if (NULL == (debValeur = findChar(debValeurs, '{')) || NULL == (finValeur = findChar(debValeur + 1, '}')) || finValeur <= debValeur + 1)
+                {
+                    printf("Parse impossible : Objet valeur vide ou incomplete\n");
+                    return false;
+                }
+                std::string value(debValeur, finValeur - debValeur);
+                if (false == parse(value))
+                    return false;
+            }
+            else
+            {
+                if (NULL == (debValeur = findChar(debValeurs, '"')) || NULL == (finValeur = findChar(debValeur + 1, '"')) || finValeur <= debValeur + 1)
+                {   // Cas de la valeur standard
+
+                    printf("Parse impossible : Valeur vide ou incomplete\n");
+                    return false;
+                }
+                std::string value(debValeur, finValeur - debValeur);
+                CObjectJSON object(E_TOJ_string, name, value);
+                object.printObject();
             }
         }
         ///////////////////////////////////////////////////////////////////////
