@@ -70,16 +70,17 @@ bool CParserJSON::parse(std::string stringToParse)
         ///////////////////////////////////////////////////////////////////////
 
         // Recherche du nom de l'élément //////////////////////////////////////
-        if (NULL == (debNom = findChar(debElement, '"')) || NULL == (finNom = findChar(debNom+1, '"')) || finNom == debNom + 1 )
+        if (NULL == (debNom = findChar(debElement, '\"')) || NULL == (finNom = findChar(++debNom, '\"')) || finNom == debNom )
         {
             printf("Parse impossible : Nom de l'élément vide ou incomplet\n");
             return false;
         }
         std::string name(debNom, finNom - debNom);
+        printf("name : $%s$\n", name.c_str());
         ///////////////////////////////////////////////////////////////////////
 
         // Recherche de la valeur de l'élément ////////////////////////////////
-        if (NULL == (debValeurs = findChar(finNom, ':')))
+        if (NULL == (debValeurs = findChar(finNom+1, ':')))
         {
             printf("Parse impossible : Mauvais format (:)\n");
             return false;
@@ -93,6 +94,7 @@ bool CParserJSON::parse(std::string stringToParse)
             return false;
         }
         std::string values(debValeurs, finValeurs - debValeurs);
+        printf("values : $%s$\n", values.c_str());
         bufferValues = const_cast<char*>(values.c_str());
 
         if (NULL != (debArray = findChar(bufferValues, '[')))
@@ -130,6 +132,7 @@ bool CParserJSON::parse(std::string stringToParse)
                     return false;
                 }
                 std::string value(debValeur, finValeur - debValeur);
+                printf("value : $%s$\n", value.c_str());
                 if (false == parse(value))
                     return false;
             }
@@ -142,6 +145,7 @@ bool CParserJSON::parse(std::string stringToParse)
                     return false;
                 }
                 std::string value(debValeur, finValeur - debValeur);
+                printf("value : $%s$\n", value.c_str());
                 CObjectJSON object(E_TOJ_string, name, value);
                 object.printObject();
             }
