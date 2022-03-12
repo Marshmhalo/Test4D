@@ -130,20 +130,12 @@ bool CParserJSON::parse(std::string stringToParse)
             if (NULL != (debObjValeur = findChar(bufferValues, '{')) &&
                (NULL == (debValeur = findChar(bufferValues, '"')) || debObjValeur < debValeur))
             {   // Cas de la valeur objet
-
-                if (NULL == (debValeur = findChar(bufferValues, '{')) || NULL == (finValeur = findChar(debValeur + 1, '}')) || finValeur <= debValeur + 1)
-                {
-                    printf("Parse impossible : Objet valeur vide ou incomplete\n");
-                    return false;
-                }
-                std::string value(debValeur, finValeur - debValeur);
-                printf("value : $%s$\n", value.c_str());
-                if (false == parse(value))
+                if (false == parse(values))
                     return false;
             }
             else
             {
-                if (NULL == (debValeur = findChar(debValeurs, '"')) || NULL == (finValeur = findChar(debValeur + 1, '"')) || finValeur <= debValeur + 1)
+                if (NULL == (debValeur = findChar(debValeurs, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
                 {   // Cas de la valeur standard
 
                     printf("Parse impossible : Valeur vide ou incomplete\n");
