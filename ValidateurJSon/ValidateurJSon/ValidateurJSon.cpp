@@ -39,8 +39,8 @@ int main()
     std::cout << "Entrer la chaine a parser :" << std::endl;
     std::cin >> test;
 
-    CParserJSON* pParser = new CParserJSON(std::string(TEST));
-    //CParserJSON* pParser = new CParserJSON(test);
+    //CParserJSON* pParser = new CParserJSON(std::string(TEST));
+    CParserJSON* pParser = new CParserJSON(test);
     if (pParser->parse())
         std::cout << std::endl << "parsing OK" << std::endl;
     else
