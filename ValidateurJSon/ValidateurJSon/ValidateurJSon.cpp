@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "ProjectDefines.h"
 #include "ParserJSON.h"
 
 int main()

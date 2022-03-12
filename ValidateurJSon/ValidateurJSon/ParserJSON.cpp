@@ -1,6 +1,4 @@
 #include "ParserJSON.h"
-#include "ObjectJSON.h"
-
 
 /**********************************************************************************************************************
                 Constructeur CParserJSON
@@ -54,7 +52,7 @@ bool CParserJSON::parse(std::string stringToParse)
     char* bufferValue = NULL;
     char* bufferArray = NULL;
     bool isObjectArray = false;
-    bool hasNext = false, hasNextArray = false;
+    char* next = NULL, *nextArray = NULL;
 
 
     while (NULL != (debElement = findChar(buffer, '{')))    // On recherche des éléments tant qu'il y en a
@@ -64,7 +62,7 @@ bool CParserJSON::parse(std::string stringToParse)
         // Vérification d'élément "complet" ///////////////////////////////////
         if (NULL == (finElement = findChar(debElement, '}')) || finElement <= debElement+1)
         {
-            printf("Parse impossible : Elément vide ou incomplet\n");
+            printf("Parse impossible : Element vide ou incomplet\n");
             return false;
         }
         buffer = finElement+1;
@@ -72,15 +70,7 @@ bool CParserJSON::parse(std::string stringToParse)
 
         do
         {
-            // Recherche du nom de l'élément //////////////////////////////////////
-            if (NULL == (debNom = findChar(hasNext ? finValeurs+1 : debElement, '\"')) || NULL == (finNom = findChar(++debNom, '\"')) || finNom == debNom)
-            {
-                printf("Parse impossible : Nom de l'élément vide ou incomplet\n");
-                return false;
-            }
-            std::string name(debNom, finNom - debNom);
-            printf("name:%s:\n", name.c_str());
-            ///////////////////////////////////////////////////////////////////////
+            if (!parseName(next ? next : debElement, finNom)) return false;
 
             // Recherche de la valeur de l'élément ////////////////////////////////
             if (NULL == (debValeurs = findChar(finNom + 1, ':')))
@@ -88,129 +78,12 @@ bool CParserJSON::parse(std::string stringToParse)
                 printf("Parse impossible : Mauvais format (:)\n");
                 return false;
             }
-
-            finValeurs = findChar(++debValeurs, ',');
-            hasNext = (NULL != finValeurs);
-            if (!hasNext) finValeurs = finElement;
-
-            if (finValeurs <= debValeurs)
-            {
-                printf("Parse impossible : Pas de valeur\n");
-                return false;
-            }
-            std::string values(debValeurs, finValeurs - debValeurs);
-            bufferValues = const_cast<char*>(values.c_str());
-
-            char* end = NULL;
-            const char* testInt = values.c_str();
-            long lval = strtol(testInt, &end, 10);
-            if (end != testInt && (*end == '\0' || *end == '\t' || *end == ' ' || *end == '\r' || *end == '\n') && errno != ERANGE)
-            {   // Cas du nombre
-                printf("value:%ld\n", lval);
-            }
-            else
-            {
-
-                debArray = findChar(bufferValues, '[');
-                debObjValeur = findChar(bufferValues, '{');
-                debValeur = findChar(bufferValues, '"');
-
-                if (NULL != debArray &&
-                    (NULL == debObjValeur || debArray < debObjValeur) &&
-                    (NULL == debValeur || debArray < debValeur))
-                { // Cas d'un tableau
-                    ++debArray;
-
-                    // Vérification de tableau complet //////////////////////
-                    if (NULL == (finArray = findChar(debArray, ']')) || finArray <= debArray + 1)
-                    {
-                        printf("Parse impossible : Tableau vide ou incomplet\n");
-                        return false;
-                    }
-
-                    std::string arrayJSON(debArray, finArray - debArray);
-                    bufferArray = const_cast<char*>(arrayJSON.c_str());
-
-                    do
-                    {
-                        debObjValeur = findChar(bufferArray, '{');
-                        debValeur = findChar(bufferArray, '"');
-
-                        hasNextArray = (NULL != (debArray = findChar(bufferArray, ',')));
-
-                        if (NULL != debObjValeur &&
-                            (NULL == debValeur || debObjValeur < debValeur))
-                        {   // Cas de la valeur objet
-                            hasNextArray = false; // Déjà géré dabns la fonction de base
-                            if (false == parse(arrayJSON))
-                                return false;
-                        }
-                        else if (NULL != debValeur)
-                        {
-                            if (NULL == (debValeur = findChar(bufferArray, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
-                            {   // Cas de la valeur standard
-
-                                printf("Parse impossible : Valeur vide ou incomplete\n");
-                                return false;
-                            }
-                            std::string value(debValeur, finValeur - debValeur);
-                            printf("value:%s\n", value.c_str());
-                        }
-
-                        if (hasNextArray)
-                            bufferArray = debArray + 1;
-                    } while (hasNextArray);
-                }
-                else
-                {
-                    if (NULL != debObjValeur &&
-                        (NULL == debValeur || debObjValeur < debValeur))
-                    {   // Cas de la valeur objet
-                        if (false == parse(values))
-                            return false;
-                    }
-                    else if (NULL != debValeur)
-                    {
-                        if (NULL == (debValeur = findChar(bufferValues, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
-                        {   // Cas de la valeur standard
-
-                            printf("Parse impossible : Valeur vide ou incomplete\n");
-                            return false;
-                        }
-                        std::string value(debValeur, finValeur - debValeur);
-                        printf("value:%s\n", value.c_str());
-                    }
-                }
-            }
+            if (!parseValues(debValeurs, finElement, next)) return false;
             ///////////////////////////////////////////////////////////////////////
-        } while (hasNext);
+        } while (next);
     }
 
     return true;
-}
-
-/**********************************************************************************************************************
-                trimSpace
-
-Description : Fonction de trime des espaces
------------------------------------------------------------------------------------------------------------------------
-ENTREES: -->]   buffer  : Buffer à trimer
-                sens    : Sens dans lequel on doit enlever les espaces
------------------------------------------------------------------------------------------------------------------------
-SORTIES: [-->   Buffer trimé
-**********************************************************************************************************************/
-char* CParserJSON::trimSpace(char* buffer, E_SensRecherche sens)
-{
-    while (*buffer == ' ' || *buffer == '\t' || *buffer == '\r' || *buffer == '\n' || *buffer == '\0')
-    {
-        switch (sens) {
-        case E_SR_Avant:    ++buffer; break;
-        case E_SR_Arriere:  --buffer; break;
-        default: return buffer;
-        }
-    }
-
-    return buffer;
 }
 
 /**********************************************************************************************************************
@@ -249,6 +122,183 @@ char* CParserJSON::findChar(char* buffer, char value, unsigned int size/*=0*/)
     }
 
     return NULL;
+}
+
+/**********************************************************************************************************************
+                parseName
+
+Description : Fonction de parse du nom de l'objet
+-----------------------------------------------------------------------------------------------------------------------
+ENTREES: -->]   debElement : Debut de l'élément dans lequel on cherche le nom
+                finNom : Fin du nom retourné par la fonction
+-----------------------------------------------------------------------------------------------------------------------
+SORTIES: [--> Statut du parsing
+**********************************************************************************************************************/
+bool CParserJSON::parseName(char* debElement, char* &finNom)
+{
+    char *debNom = NULL;
+    if (NULL == (debNom = findChar(debElement, '\"')) || NULL == (finNom = findChar(++debNom, '\"')) || finNom == debNom)
+    {
+        printf("Parse impossible : Nom de l'element vide ou incomplet\n");
+        return false;
+    }
+    std::string name(debNom, finNom - debNom);
+    printf("name:%s:\n", name.c_str());
+
+    return true;
+}
+
+/**********************************************************************************************************************
+                parseValues
+
+Description : Fonction de parse de la chaine des valeurs de l'objet
+-----------------------------------------------------------------------------------------------------------------------
+ENTREES: -->]   debValeurs : Début de la valeur
+                finElement : Fin de l'élément
+                next : Element suivant rempli par la fonction
+-----------------------------------------------------------------------------------------------------------------------
+SORTIES: [--> Statut du parsing
+**********************************************************************************************************************/
+bool CParserJSON::parseValues(char* debValeurs, char* finElement, char*& next)
+{
+    // Vérifications de base //////////////////////////////////////////////////
+    char* finValeurs = NULL;
+
+    finValeurs = findChar(++debValeurs, ',');
+    next = (NULL != finValeurs) ? finValeurs + 1 : NULL;
+    if (!next) finValeurs = finElement;
+
+    if (finValeurs <= debValeurs)
+    {
+        printf("Parse impossible : Pas de valeur\n");
+        return false;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+
+
+    std::string values(debValeurs, finValeurs - debValeurs);
+    char * bufferValues = const_cast<char*>(values.c_str());
+
+    if (isInteger(bufferValues))    // Cas des nombres
+        return true;
+
+    char* debArray = findChar(bufferValues, '[');
+    char* debObjValeur = findChar(bufferValues, '{');
+    char* debValeur = findChar(bufferValues, '"');
+    char* finArray = NULL, * finValeur = NULL;
+
+    if (NULL != debArray && (NULL == debObjValeur || debArray < debObjValeur) && (NULL == debValeur || debArray < debValeur))
+    {   // Cas d'un tableau ('[' trouvé avant '{' et '"')
+        if (!parseArray(++debArray)) return false;
+    }
+    else
+    {
+        if (NULL != debObjValeur && (NULL == debValeur || debObjValeur < debValeur))
+        {   // Cas de la valeur objet
+            if (!parse(values)) return false;
+        }
+        else if (NULL != debValeur)
+        {   // Cas de la valeur standard
+            if (!parseValue(bufferValues)) return false;
+        }
+    }
+
+    return true;
+}
+
+/**********************************************************************************************************************
+                parseValue
+
+Description : Fonction de parse de la valeur de l'objet
+-----------------------------------------------------------------------------------------------------------------------
+ENTREES: -->]   debValeur : Debut de la valeur
+-----------------------------------------------------------------------------------------------------------------------
+SORTIES: [-->   Statut du parsing
+**********************************************************************************************************************/
+bool CParserJSON::parseValue(char* debValeur)
+{
+    char* finValeur = NULL;
+    if (NULL == (debValeur = findChar(debValeur, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
+    {   // Cas de la valeur standard
+
+        printf("Parse impossible : Valeur vide ou incomplete\n");
+        return false;
+    }
+    std::string value(debValeur, finValeur - debValeur);
+    printf("value:%s\n", value.c_str());
+    return true;
+}
+
+/**********************************************************************************************************************
+                parseArray
+
+Description : Fonction de parse d'un tableau
+-----------------------------------------------------------------------------------------------------------------------
+ENTREES: -->]   debArray : Debut du tableau
+-----------------------------------------------------------------------------------------------------------------------
+SORTIES: [-->   Statut du parsing
+**********************************************************************************************************************/
+bool CParserJSON::parseArray(char* debArray)
+{
+    char* finArray = findChar(debArray, ']');
+
+    // Vérification de tableau complet //////////////////////
+    if (NULL == finArray || finArray <= debArray + 1)
+    {
+        printf("Parse impossible : Tableau vide ou incomplet\n");
+        return false;
+    }
+
+    std::string arrayJSON(debArray, finArray - debArray);
+    char* bufferArray = const_cast<char*>(arrayJSON.c_str());
+
+    char* next = NULL;
+    do
+    {
+        char * debObjValeur = findChar(bufferArray, '{');
+        char* debValeur = findChar(bufferArray, '"');
+        char* finValeur = NULL;
+
+        if (NULL != debObjValeur && (NULL == debValeur || debObjValeur < debValeur))
+        {   // Cas de la valeur objet
+
+            if (!parse(arrayJSON)) return false;
+
+            next = NULL; // Déjà géré dans la fonction de parse de base
+        }
+        else
+        {   // Cas de la valeur standard
+
+            if (!parseValue(bufferArray)) return false;
+
+            next = (NULL != (debArray = findChar(bufferArray, ','))) ? debArray + 1 : NULL;
+            bufferArray = next;
+        }
+
+    } while (next);
+
+    return true;
+}
+
+/**********************************************************************************************************************
+                isInteger
+
+Description : Renvoie True s'il s'agit d'un Integer
+-----------------------------------------------------------------------------------------------------------------------
+ENTREES: -->] value : valeur a parser
+-----------------------------------------------------------------------------------------------------------------------
+SORTIES: [--> True s'il s'agit d'un Integer
+**********************************************************************************************************************/
+bool CParserJSON::isInteger(char* value)
+{
+    char* end = NULL;
+    long lval = strtol(value, &end, 10);
+    if (end != value && (*end == '\0' || *end == '\t' || *end == ' ' || *end == '\r' || *end == '\n') && errno != ERANGE)
+    {   // Cas du nombre
+        printf("value:%ld\n", lval);
+        return true;
+    }
+    return false;
 }
 
 /* EOF */

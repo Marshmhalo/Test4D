@@ -140,14 +140,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ObjectJSON.cpp" />
     <ClCompile Include="ParserJSON.cpp" />
     <ClCompile Include="ValidateurJSon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ObjectJSON.h" />
     <ClInclude Include="ParserJSON.h" />
-    <ClInclude Include="ProjectDefines.h" />
     <ClInclude Include="SimpleObjectJSON.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
