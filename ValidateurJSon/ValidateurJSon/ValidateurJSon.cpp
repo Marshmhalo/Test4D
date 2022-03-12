@@ -5,17 +5,23 @@
 
 #include "ProjectDefines.h"
 #include "ObjectJSON.h"
+#include "ParserJSON.h"
 
 int main()
 {
     std::vector <std::string> vect;
     vect.push_back(std::string("test1"));
     vect.push_back(std::string("test2"));
-    CObjectJSON<int>*           pObjectNull = new CObjectJSON<int>(E_TOJ_null, std::string("GpiNull"), 0);
-    CObjectJSON<std::string>*   pObjectStr  = new CObjectJSON<std::string>(E_TOJ_string, std::string("GpiStr"), vect);
-    CObjectJSON<int>*           pObjectNb   = new CObjectJSON<int>(E_TOJ_number, std::string("GpiNb"), 7);
-    CObjectJSON<std::string>*   pObjectObj  = new CObjectJSON<std::string>(E_TOJ_object, std::string("GpiObj"), std::string("obj"));
-    CObjectJSON<int>*           pObjectBool = new CObjectJSON<int>(E_TOJ_boolean, std::string("GpiBool"), 1);
+
+    CParserJSON* pParser = new CParserJSON();
+    delete pParser;
+
+
+    CObjectJSON* pObjectNull    = new CObjectJSON(E_TOJ_null,       std::string("GpiNull"), std::string("0")    );
+    CObjectJSON* pObjectStr     = new CObjectJSON(E_TOJ_string,     std::string("GpiStr"),  vect                );
+    CObjectJSON* pObjectNb      = new CObjectJSON(E_TOJ_number,     std::string("GpiNb"),   std::string("7")    );
+    CObjectJSON* pObjectObj     = new CObjectJSON(E_TOJ_object,     std::string("GpiObj"),  std::string("obj")  );
+    CObjectJSON* pObjectBool    = new CObjectJSON(E_TOJ_boolean,    std::string("GpiBool"), std::string("true") );
 
     pObjectNull->printObject();
     pObjectStr->printObject();

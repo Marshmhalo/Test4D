@@ -2,8 +2,6 @@
 
 #include <string>
 
-class CObjectJSON;
-
 /**********************************************************************************************************************
     Classe de parsing du JSON
 
@@ -13,7 +11,7 @@ Description : Cette classe sert à parser une chaîne de caractères en JSON et ret
 class CParserJSON
 {
 public:
-    CParserJSON() {}
+    CParserJSON();
     virtual ~CParserJSON() {}
 
 protected:

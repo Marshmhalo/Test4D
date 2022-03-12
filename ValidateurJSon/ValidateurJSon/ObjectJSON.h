@@ -8,21 +8,23 @@
 /**********************************************************************************************************************
     Classe décrivant un objet JSON
 **********************************************************************************************************************/
-template <class T>
 class CObjectJSON
 {
 public:
-    CObjectJSON<T>(E_TypeObjectJSON eType, std::string name, std::vector<T> values);
-    CObjectJSON<T>(E_TypeObjectJSON eType, std::string name, T value);
+    CObjectJSON(E_TypeObjectJSON eType, std::string name, std::vector<std::string> values);
+    CObjectJSON(E_TypeObjectJSON eType, std::string name, std::string value);
     virtual ~CObjectJSON() {}
 
 public:
+    virtual bool assertObject();
+    //!< Vérifie que l'objet est cohérent
     virtual void printObject();
+    //!< Imprime l'objet dans la console
 
 protected:
-    E_TypeObjectJSON    m_eType;    // Type de l'objet JSON
-    std::string         m_name;     // Nom de l'élément JSON
-    std::vector<T>      m_values;   // Valeurs de l'élément JSON
+    E_TypeObjectJSON            m_eType;    // Type de l'objet JSON
+    std::string                 m_name;     // Nom de l'élément JSON
+    std::vector<std::string>    m_values;   // Valeurs de l'élément JSON
 };
 
 /* EOF */
