@@ -43,17 +43,9 @@ bool CParserJSON::parse(std::string stringToParse)
     char* buffer = const_cast<char*>(stringToParse.c_str());
 
     char* debElement = NULL, * finElement = NULL;
-    char* debNom = NULL, * finNom = NULL;
-    char* debValeurs = NULL, * finValeurs = NULL;
-    char* debArray = NULL, * finArray = NULL;
-    char* debValeur = NULL, * finValeur = NULL;
-    char* debObjValeur = NULL, * finObjValeur = NULL;
-    char* bufferValues = NULL;
-    char* bufferValue = NULL;
-    char* bufferArray = NULL;
-    bool isObjectArray = false;
-    char* next = NULL, *nextArray = NULL;
-
+    char* finNom = NULL;
+    char* debValeurs = NULL;
+    char* next = NULL;
 
     while (NULL != (debElement = findChar(buffer, '{')))    // On recherche des éléments tant qu'il y en a
     {
