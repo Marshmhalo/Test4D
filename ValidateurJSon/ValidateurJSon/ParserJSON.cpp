@@ -101,43 +101,77 @@ bool CParserJSON::parse(std::string stringToParse)
             std::string values(debValeurs, finValeurs - debValeurs);
             bufferValues = const_cast<char*>(values.c_str());
 
-            debArray = findChar(bufferValues, '[');
-            debObjValeur = findChar(bufferValues, '{');
-            debValeur = findChar(bufferValues, '"');
+            char* end = NULL;
+            const char* testInt = values.c_str();
+            long lval = strtol(testInt, &end, 10);
+            if (end != testInt && (*end == '\0' || *end == '\t' || *end == ' ' || *end == '\r' || *end == '\n') && errno != ERANGE)
+            {   // Cas du nombre
+                printf("value:%ld\n", lval);
+            }
+            else
+            {
 
-            if (NULL != debArray &&
-                (NULL == debObjValeur || debArray < debObjValeur) &&
-                (NULL == debValeur || debArray < debValeur))
-            { // Cas d'un tableau
-                ++debArray;
+                debArray = findChar(bufferValues, '[');
+                debObjValeur = findChar(bufferValues, '{');
+                debValeur = findChar(bufferValues, '"');
 
-                // Vérification de tableau complet //////////////////////
-                if (NULL == (finArray = findChar(debArray, ']')) || finArray <= debArray + 1)
-                {
-                    printf("Parse impossible : Tableau vide ou incomplet\n");
-                    return false;
+                if (NULL != debArray &&
+                    (NULL == debObjValeur || debArray < debObjValeur) &&
+                    (NULL == debValeur || debArray < debValeur))
+                { // Cas d'un tableau
+                    ++debArray;
+
+                    // Vérification de tableau complet //////////////////////
+                    if (NULL == (finArray = findChar(debArray, ']')) || finArray <= debArray + 1)
+                    {
+                        printf("Parse impossible : Tableau vide ou incomplet\n");
+                        return false;
+                    }
+
+                    std::string arrayJSON(debArray, finArray - debArray);
+                    bufferArray = const_cast<char*>(arrayJSON.c_str());
+
+                    do
+                    {
+                        debObjValeur = findChar(bufferArray, '{');
+                        debValeur = findChar(bufferArray, '"');
+
+                        hasNextArray = (NULL != (debArray = findChar(bufferArray, ',')));
+
+                        if (NULL != debObjValeur &&
+                            (NULL == debValeur || debObjValeur < debValeur))
+                        {   // Cas de la valeur objet
+                            hasNextArray = false; // Déjà géré dabns la fonction de base
+                            if (false == parse(arrayJSON))
+                                return false;
+                        }
+                        else if (NULL != debValeur)
+                        {
+                            if (NULL == (debValeur = findChar(bufferArray, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
+                            {   // Cas de la valeur standard
+
+                                printf("Parse impossible : Valeur vide ou incomplete\n");
+                                return false;
+                            }
+                            std::string value(debValeur, finValeur - debValeur);
+                            printf("value:%s\n", value.c_str());
+                        }
+
+                        if (hasNextArray)
+                            bufferArray = debArray + 1;
+                    } while (hasNextArray);
                 }
-
-                std::string arrayJSON(debArray, finArray - debArray);
-                bufferArray = const_cast<char*>(arrayJSON.c_str());
-
-                do
+                else
                 {
-                    debObjValeur = findChar(bufferArray, '{');
-                    debValeur = findChar(bufferArray, '"');
-
-                    hasNextArray = (NULL != (debArray = findChar(bufferArray, ',')));
-
                     if (NULL != debObjValeur &&
                         (NULL == debValeur || debObjValeur < debValeur))
                     {   // Cas de la valeur objet
-                        hasNextArray = false; // Déjà géré dabns la fonction de base
-                        if (false == parse(arrayJSON))
+                        if (false == parse(values))
                             return false;
                     }
                     else if (NULL != debValeur)
                     {
-                        if (NULL == (debValeur = findChar(bufferArray, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
+                        if (NULL == (debValeur = findChar(bufferValues, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
                         {   // Cas de la valeur standard
 
                             printf("Parse impossible : Valeur vide ou incomplete\n");
@@ -146,29 +180,6 @@ bool CParserJSON::parse(std::string stringToParse)
                         std::string value(debValeur, finValeur - debValeur);
                         printf("value:%s\n", value.c_str());
                     }
-
-                    if (hasNextArray)
-                        bufferArray = debArray + 1;
-                } while (hasNextArray);
-            }
-            else
-            {
-                if (NULL != debObjValeur &&
-                    (NULL == debValeur || debObjValeur < debValeur))
-                {   // Cas de la valeur objet
-                    if (false == parse(values))
-                        return false;
-                }
-                else if (NULL != debValeur)
-                {
-                    if (NULL == (debValeur = findChar(bufferValues, '"')) || NULL == (finValeur = findChar(++debValeur, '"')) || finValeur <= debValeur)
-                    {   // Cas de la valeur standard
-
-                        printf("Parse impossible : Valeur vide ou incomplete\n");
-                        return false;
-                    }
-                    std::string value(debValeur, finValeur - debValeur);
-                    printf("value:%s\n", value.c_str());
                 }
             }
             ///////////////////////////////////////////////////////////////////////
